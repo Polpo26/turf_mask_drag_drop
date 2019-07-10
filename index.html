@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+
+    <title>turf difference</title>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"></script>
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+        <script src="https://cdn.jsdelivr.net/npm/@turf/turf@5/turf.min.js"></script>
+
+    <style>
+      body {
+        padding: 0;
+        margin: 0;
+      }
+
+      html, body, #map {
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+
+    <div id='map'></div>
+
+    <script>
+
+      var map = L.map('map', {
+        center: [0, 0],
+        zoom: 3
+      });
+
+      var basemap = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+      });
+
+      basemap.addTo(map);
+
+      fileReader = new FileReader();
+
+      fileReader.onload = function() {
+
+        var fileContent = fileReader.result;
+
+        var geojson = JSON.parse(fileContent);
+
+        var layer = L.geoJSON(geojson);
+
+        layer.addTo(map);
+
+        var bounds = layer.getBounds();
+
+        map.fitBounds(bounds);
+
+        // turf mask
+       var masked = turf.mask(geojson);
+       var layer2 = L.geoJSON(masked, {"fillOpacity": 0.99, color: '#2e0afc', weight: 5});
+       layer2.addTo(map);
+      // L.geoJSON(masked, {"fillOpacity": 0.99, color: '#2e0afc', weight: 5}).addTo(map);
+
+      }
+
+      function onFileDragOver(e) {
+
+        e.stopPropagation();
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+
+      }
+
+      function onFileDrop(e) {
+
+        e.stopPropagation();
+        e.preventDefault();
+
+        var files = e.dataTransfer.files;
+        var uploadedFile = files[0];
+        fileReader.readAsText(uploadedFile);
+
+      }
+
+      var dropDiv = document.getElementById('map');
+      dropDiv.addEventListener('dragover', onFileDragOver, false);
+      dropDiv.addEventListener('drop', onFileDrop, false);
+
+    </script>
+
+  </body>
+  </html>
+</html>
